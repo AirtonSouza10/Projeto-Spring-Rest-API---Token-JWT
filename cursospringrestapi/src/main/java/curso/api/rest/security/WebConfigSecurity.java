@@ -2,7 +2,6 @@ package curso.api.rest.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -11,6 +10,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import curso.api.rest.service.ImplementacaoUserDetailsService;
 
@@ -32,17 +32,13 @@ public class WebConfigSecurity extends WebSecurityConfigurerAdapter{
 		
 		//ativa a permissao para a pagina innicial dio sistema
 		.disable().authorizeRequests().antMatchers("/").permitAll()
+		
 		.antMatchers("/index").permitAll()
-		
-		//liberacao de clietnes para usar funcoes
-		.antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-		
 		//url de logout
 		.anyRequest().authenticated().and().logout().logoutSuccessUrl("/index")
 		
 		//mapeia urlde logout e invalida usuario
 		.logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
-		
 		
 		//filtra requisicoes de login para autenticacao
 		.and().addFilterBefore(new JWTLoginFilter("/login", authenticationManager()),
@@ -63,5 +59,6 @@ public class WebConfigSecurity extends WebSecurityConfigurerAdapter{
 		.passwordEncoder(new BCryptPasswordEncoder());
 	
 	}
+	
 	
 }
