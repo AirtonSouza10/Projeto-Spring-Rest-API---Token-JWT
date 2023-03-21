@@ -63,6 +63,22 @@ public class IndexController {
 		
 	}	
 	
+	//----------------------------------------------------------------------------
+	//EndPoint buscar usuario por nome
+	@GetMapping(value = "/usuarioPorNome/{nome}", produces = "application/json")
+	@CachePut("cacheusuarios")
+	public ResponseEntity<List<Usuario>> usuarioPorNome(@PathVariable("nome") String nome) throws InterruptedException{
+		
+		List<Usuario> list = (List<Usuario>) usuarioRepository.findUserByNome(nome);
+		
+		//Thread.sleep(6000);segura o codigo 6 segundos simulando um processo lento
+		
+		return new ResponseEntity<List<Usuario>>(list, HttpStatus.OK);
+		
+	}	
+	
+	
+	
 	
 	//----------------------------------------------------------------------------
 	@PostMapping(value = "/", produces = "application/json")
