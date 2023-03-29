@@ -6,29 +6,53 @@ public class UsuarioDTO implements Serializable{
 
 	private static final long serialVersionUID = 1L;
 	
-	private String userLogin;
-	private String userNome;
-	
+	private Long id;
+	private String login;
+	private String nome;
+	private String senha;
 
 	public UsuarioDTO(Usuario usuario) {
-		
-		this.userLogin = usuario.getLogin();
-		this.userNome = usuario.getNome();
+		this.id = usuario.getId();
+		this.login = usuario.getLogin();
+		this.nome = usuario.getNome();
+		this.senha = usuario.getSenha();
 	}
 	
 	
-	public String getUserLogin() {
-		return userLogin;
+	public String getLogin() {
+		return login;
 	}
-	public void setUserLogin(String userLogin) {
-		this.userLogin = userLogin;
+	public void setLogin(String login) {
+		this.login = login;
 	}
-	public String getUserNome() {
-		return userNome;
+	public String getNome() {
+		return nome;
 	}
-	public void setUserNome(String userNome) {
-		this.userNome = userNome;
+	public void setNome(String nome) {
+		this.nome = nome;
 	}
+
+
+	public Long getId() {
+		return id;
+	}
+
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+
+	public String getSenha() {
+		return senha;
+	}
+
+
+	public void setSenha(String senha) {
+		this.senha = senha;
+	}
+	
+	
 
 
 	
