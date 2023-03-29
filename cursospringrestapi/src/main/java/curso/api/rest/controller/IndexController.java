@@ -88,7 +88,7 @@ public class IndexController {
 			usuario.getTelefones().get(pos).setUsuario(usuario);	
 		}		
 		
-		
+		/**
 		//consumindo api externa - cep
 		URL url = new URL("https://viacep.com.br/ws/"+usuario.getCep()+"/json/");
 		URLConnection connection = url.openConnection();
@@ -113,7 +113,7 @@ public class IndexController {
 		usuario.setUf(userAux.getUf());
 		//consumindo api externa - cep
 				
-		
+		**/
 		
 		String senhaCriptografada = new BCryptPasswordEncoder().encode(usuario.getSenha());
 		usuario.setSenha(senhaCriptografada);
