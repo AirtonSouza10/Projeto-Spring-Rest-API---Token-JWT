@@ -30,4 +30,14 @@ public class ImplementacaoUserDetailsService  implements UserDetailsService{
 		return new User(usuario.getLogin(), usuario.getPassword(), usuario.getAuthorities());
 	}
 
+	public void insereAcessoPadrao(Long id) {
+		//descobre a constraint de restricao
+		String constraint = usuarioRepository.consultaConstraintRole();
+		//remove a constraint
+		usuarioRepository.removerConstraintRole(constraint);
+		//insere acesso padrao
+		usuarioRepository.insereAcessoRolePadrao(id);
+		
+	}
+
 }

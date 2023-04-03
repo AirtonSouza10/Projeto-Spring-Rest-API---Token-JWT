@@ -1,11 +1,5 @@
 package curso.api.rest.controller;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,11 +19,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.google.gson.Gson;
-
 import curso.api.rest.model.Usuario;
 import curso.api.rest.model.UsuarioDTO;
 import curso.api.rest.repository.UsuarioRepository;
+import curso.api.rest.service.ImplementacaoUserDetailsService;
 
 @CrossOrigin
 @RestController
@@ -38,6 +31,10 @@ public class IndexController {
 	
 	@Autowired
 	private UsuarioRepository usuarioRepository;
+	
+	@Autowired
+	private ImplementacaoUserDetailsService implementacaoUserDetailsService;
+	
 
 	@GetMapping(value = "/{id}", produces = "application/json")
 	public ResponseEntity<UsuarioDTO> init(@PathVariable (value = "id") Long id) {
@@ -118,6 +115,8 @@ public class IndexController {
 		String senhaCriptografada = new BCryptPasswordEncoder().encode(usuario.getSenha());
 		usuario.setSenha(senhaCriptografada);
 		Usuario usuarioSalvo = usuarioRepository.save(usuario);
+		
+		implementacaoUserDetailsService.insereAcessoPadrao(usuarioSalvo.getId());
 		
 		return new ResponseEntity<Usuario>(usuarioSalvo, HttpStatus.OK);
 		
