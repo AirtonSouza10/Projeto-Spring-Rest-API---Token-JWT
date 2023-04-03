@@ -1,6 +1,7 @@
 package curso.api.rest.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -16,6 +17,9 @@ public class ImplementacaoUserDetailsService  implements UserDetailsService{
 
 	@Autowired
 	private UsuarioRepository usuarioRepository;
+	
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
 	
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -33,8 +37,17 @@ public class ImplementacaoUserDetailsService  implements UserDetailsService{
 	public void insereAcessoPadrao(Long id) {
 		//descobre a constraint de restricao
 		String constraint = usuarioRepository.consultaConstraintRole();
+		
+		if(constraint != null) {
+		
+		/*
 		//remove a constraint
 		usuarioRepository.removerConstraintRole(constraint);
+		*/
+		jdbcTemplate.execute("alter table usuario_role DROP CONSTRAINT" + constraint);
+		
+		}
+		
 		//insere acesso padrao
 		usuarioRepository.insereAcessoRolePadrao(id);
 		
