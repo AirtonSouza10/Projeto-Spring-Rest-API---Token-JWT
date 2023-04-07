@@ -1,6 +1,8 @@
 package curso.api.rest.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UsuarioDTO implements Serializable{
 
@@ -10,12 +12,14 @@ public class UsuarioDTO implements Serializable{
 	private String login;
 	private String nome;
 	private String senha;
+	private List<Telefone> telefones = new ArrayList<Telefone>();
 
 	public UsuarioDTO(Usuario usuario) {
 		this.id = usuario.getId();
 		this.login = usuario.getLogin();
 		this.nome = usuario.getNome();
 		this.senha = usuario.getSenha();
+		this.telefones = usuario.getTelefones();
 	}
 	
 	
@@ -50,6 +54,16 @@ public class UsuarioDTO implements Serializable{
 
 	public void setSenha(String senha) {
 		this.senha = senha;
+	}
+
+
+	public List<Telefone> getTelefones() {
+		return telefones;
+	}
+
+
+	public void setTelefones(List<Telefone> telefones) {
+		this.telefones = telefones;
 	}
 	
 	
