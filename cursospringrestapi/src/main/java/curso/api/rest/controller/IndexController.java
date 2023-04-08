@@ -6,6 +6,9 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -52,13 +55,36 @@ public class IndexController {
 	@GetMapping(value = "/", produces = "application/json")
 	@CacheEvict(value = "cacheusuarios", allEntries = true)
 	@CachePut("cacheusuarios")
-	public ResponseEntity<List<Usuario>> usuario() throws InterruptedException {
+	public ResponseEntity<Page<Usuario>> usuario() throws InterruptedException {
 
-		List<Usuario> list = (List<Usuario>) usuarioRepository.findAll();
+		// pagiação
+		PageRequest page = PageRequest.of(0, 5, Sort.by("nome"));
+		// pesquisa apenas os 5 primeiros registros
+		Page<Usuario> list = usuarioRepository.findAll(page);
 
+		// List<Usuario> list = (List<Usuario>) usuarioRepository.findAll();
 		// Thread.sleep(6000);segura o codigo 6 segundos simulando um processo lento
 
-		return new ResponseEntity<List<Usuario>>(list, HttpStatus.OK);
+		return new ResponseEntity<Page<Usuario>>(list, HttpStatus.OK);
+
+	}
+
+	// -------------------------------------------metodo para receber
+	// paginação----------------------------------
+	@GetMapping(value = "/page/{pagina}", produces = "application/json")
+	@CacheEvict(value = "cacheusuarios", allEntries = true)
+	@CachePut("cacheusuarios")
+	public ResponseEntity<Page<Usuario>> usuarioPagina(@PathVariable("pagina") int pagina) throws InterruptedException {
+
+		// pagiação
+		PageRequest page = PageRequest.of(pagina, 5, Sort.by("nome"));
+		// pesquisa apenas os 5 primeiros registros
+		Page<Usuario> list = usuarioRepository.findAll(page);
+
+		// List<Usuario> list = (List<Usuario>) usuarioRepository.findAll();
+		// Thread.sleep(6000);segura o codigo 6 segundos simulando um processo lento
+
+		return new ResponseEntity<Page<Usuario>>(list, HttpStatus.OK);
 
 	}
 
@@ -66,15 +92,53 @@ public class IndexController {
 	// EndPoint buscar usuario por nome
 	@GetMapping(value = "/usuarioPorNome/{nome}", produces = "application/json")
 	@CachePut("cacheusuarios")
-	public ResponseEntity<List<Usuario>> usuarioPorNome(@PathVariable("nome") String nome) throws InterruptedException {
+	public ResponseEntity<Page<Usuario>> usuarioPorNome(@PathVariable("nome") String nome) throws InterruptedException {
 
-		List<Usuario> list = (List<Usuario>) usuarioRepository.findUserByNome(nome);
+		PageRequest pageRequest = null;
+		Page<Usuario> list = null;
+
+		// caso usuario não digite nada na busca
+		if (nome == null || (nome != null && nome.trim().isEmpty()) || nome.equalsIgnoreCase("undefined")) {
+			pageRequest = PageRequest.of(0, 5, Sort.by("nome"));
+			list = usuarioRepository.findAll(pageRequest);
+		} else {// caso usuario digite algo no campo pesquisa
+
+			pageRequest = PageRequest.of(0, 5, Sort.by("nome"));
+			list = usuarioRepository.findUserByNomePage(nome, pageRequest);
+
+		}
 
 		// Thread.sleep(6000);segura o codigo 6 segundos simulando um processo lento
 
-		return new ResponseEntity<List<Usuario>>(list, HttpStatus.OK);
+		return new ResponseEntity<Page<Usuario>>(list, HttpStatus.OK);
 
 	}
+	
+	// ----------------------------------------------------------------------------
+	// EndPoint buscar usuario por nome
+	@GetMapping(value = "/usuarioPorNome/{nome}/page/{page}", produces = "application/json")
+	@CachePut("cacheusuarios")
+	public ResponseEntity<Page<Usuario>> usuarioPorNomePage(@PathVariable("nome") String nome, @PathVariable("page") int page) throws InterruptedException {
+
+		PageRequest pageRequest = null;
+		Page<Usuario> list = null;
+
+		// caso usuario não digite nada na busca
+		if (nome == null || (nome != null && nome.trim().isEmpty()) || nome.equalsIgnoreCase("undefined")) {
+			pageRequest = PageRequest.of(page, 5, Sort.by("nome"));
+			list = usuarioRepository.findAll(pageRequest);
+		} else {// caso usuario digite algo no campo pesquisa
+
+			pageRequest = PageRequest.of(page, 5, Sort.by("nome"));
+			list = usuarioRepository.findUserByNomePage(nome, pageRequest);
+
+		}
+
+		// Thread.sleep(6000);segura o codigo 6 segundos simulando um processo lento
+
+		return new ResponseEntity<Page<Usuario>>(list, HttpStatus.OK);
+
+	}	
 
 	// ----------------------------------------------------------------------------
 	@PostMapping(value = "/", produces = "application/json")
