@@ -2,6 +2,7 @@ package curso.api.rest.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class UsuarioDTO implements Serializable{
@@ -12,6 +13,8 @@ public class UsuarioDTO implements Serializable{
 	private String login;
 	private String nome;
 	private String senha;
+	private String cpf;
+	private Date dataNascimento;
 	private List<Telefone> telefones = new ArrayList<Telefone>();
 
 	public UsuarioDTO(Usuario usuario) {
@@ -19,7 +22,9 @@ public class UsuarioDTO implements Serializable{
 		this.login = usuario.getLogin();
 		this.nome = usuario.getNome();
 		this.senha = usuario.getSenha();
+		this.cpf = usuario.getCpf();
 		this.telefones = usuario.getTelefones();
+		this.dataNascimento = usuario.getDataNascimento();
 	}
 	
 	
@@ -54,6 +59,27 @@ public class UsuarioDTO implements Serializable{
 
 	public void setSenha(String senha) {
 		this.senha = senha;
+	}
+
+
+	public String getCpf() {
+		return cpf;
+	}
+
+
+	public void setCpf(String cpf) {
+		this.cpf = cpf;
+	}
+
+
+	
+	public Date getDataNascimento() {
+		return dataNascimento;
+	}
+
+
+	public void setDataNascimento(Date dataNascimento) {
+		this.dataNascimento = dataNascimento;
 	}
 
 
