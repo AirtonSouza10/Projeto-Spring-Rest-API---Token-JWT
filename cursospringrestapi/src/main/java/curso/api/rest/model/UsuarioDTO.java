@@ -1,9 +1,12 @@
 package curso.api.rest.model;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 public class UsuarioDTO implements Serializable{
 
@@ -14,7 +17,10 @@ public class UsuarioDTO implements Serializable{
 	private String nome;
 	private String senha;
 	private String cpf;
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy", locale = "pt-BR", timezone = "Brazil/East")
 	private Date dataNascimento;
+	private Profissao profissao;
+	private BigDecimal salario;
 	private List<Telefone> telefones = new ArrayList<Telefone>();
 
 	public UsuarioDTO(Usuario usuario) {
@@ -25,6 +31,9 @@ public class UsuarioDTO implements Serializable{
 		this.cpf = usuario.getCpf();
 		this.telefones = usuario.getTelefones();
 		this.dataNascimento = usuario.getDataNascimento();
+		this.profissao = usuario.getProfissao();
+		this.salario = usuario.getSalario();
+		
 	}
 	
 	
@@ -80,6 +89,29 @@ public class UsuarioDTO implements Serializable{
 
 	public void setDataNascimento(Date dataNascimento) {
 		this.dataNascimento = dataNascimento;
+	}
+
+	
+
+	public Profissao getProfissao() {
+		return profissao;
+	}
+
+
+	public void setProfissao(Profissao profissao) {
+		this.profissao = profissao;
+	}
+
+	
+	
+
+	public BigDecimal getSalario() {
+		return salario;
+	}
+
+
+	public void setSalario(BigDecimal salario) {
+		this.salario = salario;
 	}
 
 
