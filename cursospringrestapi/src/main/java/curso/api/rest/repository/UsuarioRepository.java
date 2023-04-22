@@ -46,6 +46,11 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 			+ "values (?1, (select id from role where nome_role = 'ROLE_USER'));")
 	void insereAcessoRolePadrao(Long id);
 
+	@Transactional
+	@Modifying
+	@Query(value = "update usuario set senha = ?1 where id = ?2", nativeQuery = true)
+	void updateSenha(String senha, Long CodUser);
+
 	default Page<Usuario> findUserByNomePage(String nome, PageRequest pageRequest) {
 
 		Usuario usuario = new Usuario();
@@ -54,9 +59,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 		// configura para pesquisar por nome e pagiar
 		ExampleMatcher exampleMatcher = ExampleMatcher.matchingAny().withMatcher("nome",
 				ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase());
-		//junta as configs
+		// junta as configs
 		Example<Usuario> example = Example.of(usuario, exampleMatcher);
-		//paginação
+		// paginação
 		Page<Usuario> retorno = findAll(example, pageRequest);
 
 		return retorno;
