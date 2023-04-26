@@ -1,8 +1,16 @@
 package curso.api.rest.controller;
 
+import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -22,11 +30,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import curso.api.rest.model.UserReport;
 import curso.api.rest.model.Usuario;
 import curso.api.rest.model.UsuarioDTO;
 import curso.api.rest.repository.TelefoneRepository;
 import curso.api.rest.repository.UsuarioRepository;
 import curso.api.rest.service.ImplementacaoUserDetailsService;
+import curso.api.rest.service.ServiceRelatorio;
+import net.sf.jasperreports.engine.JRException;
 
 @CrossOrigin
 @RestController
@@ -38,6 +49,9 @@ public class IndexController {
 
 	@Autowired
 	private TelefoneRepository telefoneRepository;
+
+	@Autowired
+	ServiceRelatorio serviceRelatorio;
 
 	@Autowired
 	private ImplementacaoUserDetailsService implementacaoUserDetailsService;
@@ -113,12 +127,13 @@ public class IndexController {
 		return new ResponseEntity<Page<Usuario>>(list, HttpStatus.OK);
 
 	}
-	
+
 	// ----------------------------------------------------------------------------
 	// EndPoint buscar usuario por nome
 	@GetMapping(value = "/usuarioPorNome/{nome}/page/{page}", produces = "application/json")
 	@CachePut("cacheusuarios")
-	public ResponseEntity<Page<Usuario>> usuarioPorNomePage(@PathVariable("nome") String nome, @PathVariable("page") int page) throws InterruptedException {
+	public ResponseEntity<Page<Usuario>> usuarioPorNomePage(@PathVariable("nome") String nome,
+			@PathVariable("page") int page) throws InterruptedException {
 
 		PageRequest pageRequest = null;
 		Page<Usuario> list = null;
@@ -138,7 +153,7 @@ public class IndexController {
 
 		return new ResponseEntity<Page<Usuario>>(list, HttpStatus.OK);
 
-	}	
+	}
 
 	// ----------------------------------------------------------------------------
 	@PostMapping(value = "/", produces = "application/json")
@@ -147,29 +162,6 @@ public class IndexController {
 		for (int pos = 0; pos < usuario.getTelefones().size(); pos++) {
 			usuario.getTelefones().get(pos).setUsuario(usuario);
 		}
-
-		/**
-		 * //consumindo api externa - cep URL url = new
-		 * URL("https://viacep.com.br/ws/"+usuario.getCep()+"/json/"); URLConnection
-		 * connection = url.openConnection(); InputStream is =
-		 * connection.getInputStream(); BufferedReader br = new BufferedReader(new
-		 * InputStreamReader(is, "UTF-8"));
-		 * 
-		 * String cep = ""; StringBuilder jsonCep = new StringBuilder();
-		 * 
-		 * while((cep = br.readLine()) != null) { jsonCep.append(cep); }
-		 * 
-		 * //pega os atributos e converter para esse user aux Usuario userAux = new
-		 * Gson().fromJson(jsonCep.toString(), Usuario.class);
-		 * 
-		 * usuario.setCep(userAux.getCep());
-		 * usuario.setLogradouro(userAux.getLogradouro());
-		 * usuario.setComplemento(userAux.getComplemento());
-		 * usuario.setBairro(userAux.getBairro());
-		 * usuario.setLocalidade(userAux.getLocalidade());
-		 * usuario.setUf(userAux.getUf()); //consumindo api externa - cep
-		 * 
-		 **/
 
 		String senhaCriptografada = new BCryptPasswordEncoder().encode(usuario.getSenha());
 		usuario.setSenha(senhaCriptografada);
@@ -221,5 +213,42 @@ public class IndexController {
 		return "ok";
 
 	}
+
+	// -----------------------------relatório de
+	// usuarios-------------------------------------
+	@GetMapping(value = "/relatorio", produces = "application/text")
+	public ResponseEntity<String> downloadRelatorio(HttpServletRequest request) throws SQLException, JRException {
+
+		byte[] pdf = serviceRelatorio.gerarRelatorio("relatorio-usuario",new HashMap(), request.getServletContext());
+
+		String base64Pdf = "data:application/pdf;base64," + Base64.encodeBase64String(pdf);
+
+		return new ResponseEntity<String>(base64Pdf, HttpStatus.OK);
+	}
+	
+	// -----------------------------relatório de
+	// usuarios com parametros - data nascimento-------------------------------------
+	@PostMapping(value = "/relatorio/", produces = "application/text")
+	public ResponseEntity<String> downloadRelatorioParam(HttpServletRequest request, @RequestBody UserReport userReport) throws SQLException, JRException, ParseException {
+
+		SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+		SimpleDateFormat dateFormatParam = new SimpleDateFormat("yyyy-MM-dd");
+		
+		String dataInicio = dateFormatParam.format(dateFormat.parse(userReport.getDataInicio()));
+		String dataFim = dateFormatParam.format(dateFormat.parse(userReport.getDataFim()));
+		
+		Map<String, Object> params = new HashMap<String, Object>();
+		
+		params.put("DATA_INICIO", dataInicio);
+		params.put("DATA_FIM", dataFim);		
+		
+		
+		byte[] pdf = serviceRelatorio.gerarRelatorio("relatorio-usuario-param", params ,request.getServletContext());
+
+		String base64Pdf = "data:application/pdf;base64," + Base64.encodeBase64String(pdf);
+
+		return new ResponseEntity<String>(base64Pdf, HttpStatus.OK);
+	}
+	
 
 }
