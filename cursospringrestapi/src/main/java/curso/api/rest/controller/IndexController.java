@@ -19,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import curso.api.rest.model.UserChart;
 import curso.api.rest.model.UserReport;
 import curso.api.rest.model.Usuario;
 import curso.api.rest.model.UsuarioDTO;
@@ -52,6 +54,9 @@ public class IndexController {
 
 	@Autowired
 	ServiceRelatorio serviceRelatorio;
+
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
 
 	@Autowired
 	private ImplementacaoUserDetailsService implementacaoUserDetailsService;
@@ -219,36 +224,60 @@ public class IndexController {
 	@GetMapping(value = "/relatorio", produces = "application/text")
 	public ResponseEntity<String> downloadRelatorio(HttpServletRequest request) throws SQLException, JRException {
 
-		byte[] pdf = serviceRelatorio.gerarRelatorio("relatorio-usuario",new HashMap(), request.getServletContext());
+		byte[] pdf = serviceRelatorio.gerarRelatorio("relatorio-usuario", new HashMap(), request.getServletContext());
 
 		String base64Pdf = "data:application/pdf;base64," + Base64.encodeBase64String(pdf);
 
 		return new ResponseEntity<String>(base64Pdf, HttpStatus.OK);
 	}
-	
+
 	// -----------------------------relatório de
-	// usuarios com parametros - data nascimento-------------------------------------
+	// usuarios com parametros - data
+	// nascimento-------------------------------------
 	@PostMapping(value = "/relatorio/", produces = "application/text")
-	public ResponseEntity<String> downloadRelatorioParam(HttpServletRequest request, @RequestBody UserReport userReport) throws SQLException, JRException, ParseException {
+	public ResponseEntity<String> downloadRelatorioParam(HttpServletRequest request, @RequestBody UserReport userReport)
+			throws SQLException, JRException, ParseException {
 
 		SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 		SimpleDateFormat dateFormatParam = new SimpleDateFormat("yyyy-MM-dd");
-		
+
 		String dataInicio = dateFormatParam.format(dateFormat.parse(userReport.getDataInicio()));
 		String dataFim = dateFormatParam.format(dateFormat.parse(userReport.getDataFim()));
-		
+
 		Map<String, Object> params = new HashMap<String, Object>();
-		
+
 		params.put("DATA_INICIO", dataInicio);
-		params.put("DATA_FIM", dataFim);		
-		
-		
-		byte[] pdf = serviceRelatorio.gerarRelatorio("relatorio-usuario-param", params ,request.getServletContext());
+		params.put("DATA_FIM", dataFim);
+
+		byte[] pdf = serviceRelatorio.gerarRelatorio("relatorio-usuario-param", params, request.getServletContext());
 
 		String base64Pdf = "data:application/pdf;base64," + Base64.encodeBase64String(pdf);
 
 		return new ResponseEntity<String>(base64Pdf, HttpStatus.OK);
 	}
-	
+
+	// -----------------------------grafico-------------------------------------
+	@GetMapping(value = "/grafico", produces = "application/json")
+	public ResponseEntity<UserChart> grafico() {
+
+		UserChart userChart = new UserChart();
+
+		List<String> resultado = jdbcTemplate.queryForList(
+				"select array_agg(nome) from usuario where salario > 0 and nome <> '' union all select cast(array_agg(salario) as character varying[]) from usuario where salario > 0 and nome <> ''",
+				String.class);
+		
+		if (!resultado.isEmpty()) {
+			
+			String nomes = resultado.get(0).replaceAll("\\{", "").replaceAll("\\}", "");
+			
+			String salario = resultado.get(1).replaceAll("\\{", "").replaceAll("\\}", "");
+			
+			userChart.setNome(nomes);
+			userChart.setSalario(salario);
+			
+		}
+
+		return new ResponseEntity<UserChart>(userChart, HttpStatus.OK);
+	}
 
 }
